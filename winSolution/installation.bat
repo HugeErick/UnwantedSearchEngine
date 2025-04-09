@@ -18,7 +18,7 @@ if %ERRORLEVEL% neq 0 (
 :: Step 1: Install Rust
 echo [Step 1/5] Installing Rust...
 curl https://win.rustup.rs/x86_64 -o rustup.exe
-rustup.exe --default-toolchain stable --profile minimal
+rustup.exe /quiet /i
 if %ERRORLEVEL% neq 0 (
     echo Error: Failed to install Rust. Please check your internet connection and try again.
     pause
