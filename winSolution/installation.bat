@@ -1,118 +1,109 @@
 @echo off
+setlocal EnableDelayedExpansion
 
-:: Check if running with administrator priviges
+:: Check for admin rights
 net session >nul 2>&1
 if %ERRORLEVEL% neq 0 (
-  echo Error: This script requieres admin privileges.
-  echo Please run with admin privileges.
-  pause 
-  exit /b 1
+    echo Error: This script requires admin privileges.
+    pause
+    exit /b 1
 )
 
-:: Change to the script directory
 cd /d "%~dp0"
 cd ..
 
-:: Check if curl exists
-where curl >nul 2>&1
+:: Helper: Check command existence
+:check_command
+where %1 >nul 2>&1
 if %ERRORLEVEL% neq 0 (
-    echo Error: 'curl' is not installed. Please install it and try again.
+    echo Error: '%1' is not installed. Please install it and try again.
     pause
     exit /b 1
 )
+goto :eof
 
-:: Check if tar exists
-where tar >nul 2>&1
-if %ERRORLEVEL% neq 0 (
-    echo Error: 'tar' is not installed. Please install it and try again.
-    pause
-    exit /b 1
-)
+:: Check dependencies
+call :check_command curl
+call :check_command tar
+call :check_command powershell
 
-:: Step 1: Install Rust
-echo [Step 1/5] Installing Rust...
-powershell -Command "Invoke-WebRequest https://win.rustup.rs/x86_64 -OutFile rustup-init.exe"
-echo Installing Rust silently...
-set RUSTUP_INIT_SKIP_PATH_CHECK=yes
-set CARGO_HOME=%USERPROFILE%\.cargo
-set RUSTUP_HOME=%USERPROFILE%\.rustup
+:: Step 1: Install Rust if not already installed
+where rustc >nul 2>&1
 if %ERRORLEVEL% neq 0 (
-    echo Error: Failed to install Rust. Please check your internet connection and try again.
-    pause
-    exit /b 1
-)
-
-:: Run rustup with default installation options
-rustup-init.exe -y --default-toolchain stable --no-modify-path
-if %ERRORLEVEL% neq 0 (
-    echo Error: Failed to install Rust. Please check the logs above.
-    pause
-    exit /b 1
+    echo [Step 1/5] Installing Rust...
+    powershell -Command "Invoke-WebRequest https://win.rustup.rs/x86_64 -OutFile rustup-init.exe"
+    if exist rustup-init.exe (
+        set RUSTUP_INIT_SKIP_PATH_CHECK=yes
+        set CARGO_HOME=%USERPROFILE%\.cargo
+        set RUSTUP_HOME=%USERPROFILE%\.rustup
+        rustup-init.exe -y --default-toolchain stable --no-modify-path
+        del rustup-init.exe
+        setx PATH "%PATH%;%USERPROFILE%\.cargo\bin" /M
+        set PATH=%PATH%;%USERPROFILE%\.cargo\bin
+        echo Rust installed successfully.
+    ) else (
+        echo Error: rustup-init.exe download failed.
+        pause
+        exit /b 1
+    )
 ) else (
-    echo Rust installed successfully.
+    echo Rust already installed. Skipping.
 )
 
-:: Add cargo to PATH
-setx PATH "%PATH%;%USERPROFILE%\.cargo\bin" /M
-set PATH=%PATH%;%USERPROFILE%\.cargo\bin
-echo Rust installed successfully.
-
-:: Step 2: Install CMake and Clang (if needed)
-echo [Step 2/5] Installing CMake and Clang...
-
-:: Download CMake
-echo   - Downloading CMake v4.0.0...
-curl -L https://github.com/Kitware/CMake/releases/download/v4.0.0/cmake-4.0.0.zip -o cmake.zip
+:: Step 2: Install CMake and Clang if not found
+where cmake >nul 2>&1
 if %ERRORLEVEL% neq 0 (
-    echo Error: Failed to download CMake. Please check your internet connection and try again.
-    pause
-    exit /b 1
+    echo [Step 2/5] Installing CMake...
+    curl -L https://github.com/Kitware/CMake/releases/download/v4.0.0/cmake-4.0.0-windows-x86_64.zip -o cmake.zip
+    mkdir "C:\Program Files\CMake"
+    powershell -Command "Expand-Archive 'cmake.zip' 'C:\Program Files\CMake'" >nul
+    del cmake.zip
+    setx PATH "%PATH%;C:\Program Files\CMake\bin" /M
+) else (
+    echo CMake already installed. Skipping.
 )
-echo   - Extracting CMake...
-tar -xf cmake.zip --strip-components=1 -C "C:\Program Files\CMake"
-del cmake.zip
 
-:: Download Clang
-echo   - Downloading Clang LLVM-20.1.2...
-curl -L https://github.com/llvm/llvm-project/releases/download/llvmorg-20.1.2/LLVM-20.1.2-win64.exe -o llvm.exe
+where clang >nul 2>&1
 if %ERRORLEVEL% neq 0 (
-    echo Error: Failed to download Clang. Please check your internet connection and try again.
-    pause
-    exit /b 1
+    echo Installing Clang...
+    curl -L https://github.com/llvm/llvm-project/releases/download/llvmorg-20.1.2/LLVM-20.1.2-win64.exe -o llvm.exe
+    llvm.exe /S /D="C:\Program Files\LLVM"
+    del llvm.exe
+    setx PATH "%PATH%;C:\Program Files\LLVM\bin" /M
+) else (
+    echo Clang already installed. Skipping.
 )
-echo   - Installing Clang silently...
-llvm.exe /S /D="C:\Program Files\LLVM"
-del llvm.exe
 
-:: Add CMake and Clang to PATH
-setx PATH "%PATH%;C:\Program Files\CMake\bin;C:\Program Files\LLVM\bin" /M
-echo CMake and Clang installed successfully.
-
-:: Step 3: Build the Rust project
+:: Step 3: Build Rust project
 echo [Step 3/5] Building Rust project...
 cargo build --release
 if %ERRORLEVEL% neq 0 (
-    echo Error: Failed to build the Rust project. Please check the logs above.
+    echo Error: Failed to build the Rust project.
     pause
     exit /b 1
 )
 echo Rust project built successfully.
 
-:: Step 4: Download Raylib Windows release
-echo [Step 4/5] Downloading Raylib Windows release...
-curl -L https://github.com/raysan5/raylib/releases/download/4.5.0/raylib-4.5.0_win64_mingw-w64.zip -o raylib.zip
-if %ERRORLEVEL% neq 0 (
-    echo Error: Failed to download Raylib. Please check your internet connection and try again.
-    pause
-    exit /b 1
+:: Step 4: Download Raylib if raylib.dll not found
+if not exist target\release\raylib.dll (
+    echo [Step 4/5] Downloading Raylib...
+    curl -L https://github.com/raysan5/raylib/releases/download/4.5.0/raylib-4.5.0_win64_mingw-w64.zip -o raylib.zip
+
+    echo [Step 5/5] Extracting raylib.dll...
+    powershell -Command "Expand-Archive 'raylib.zip' 'raylib_temp'" >nul
+
+    for /R "raylib_temp" %%f in (raylib.dll) do (
+        copy "%%f" target\release\
+    )
+
+    rmdir /s /q raylib_temp
+    del raylib.zip
+    echo raylib.dll extracted and copied successfully.
+) else (
+    echo raylib.dll already exists. Skipping download and extraction.
 )
 
-:: Step 5: Extract raylib.dll
-echo [Step 5/5] Extracting raylib.dll...
-tar -xf raylib.zip --wildcards "*/lib/raylib.dll" --strip-components=2
-copy raylib.dll target\release\
-del raylib.zip
-echo raylib.dll extracted and copied successfully.
-
-echo Done! Run 'target\release\your_game.exe' to play.
+echo Done! Run 'target\release\UnwantedSearchEngine.exe' to play.
 pause
+exit /b 0
+
