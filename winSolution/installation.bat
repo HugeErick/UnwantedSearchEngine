@@ -9,6 +9,9 @@ if %ERRORLEVEL% neq 0 (
   exit /b 1
 )
 
+:: Change to the script directory
+cd /d "%~dp0"
+cd ..
 
 :: Check if curl exists
 where curl >nul 2>&1
