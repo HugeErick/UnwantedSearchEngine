@@ -1,4 +1,12 @@
 @echo off
+
+:: Check if running with administrator priviges
+net session >nul 2>&1
+if %ERRORLEVEL% neq 0 (
+  echo Error: This script requieres admin privileges.
+  echo Please run with admin privileges.
+)
+
 :: Check if curl exists
 where curl >nul 2>&1
 if %ERRORLEVEL% neq 0 (
@@ -18,7 +26,7 @@ if %ERRORLEVEL% neq 0 (
 :: Step 1: Install Rust
 echo [Step 1/5] Installing Rust...
 curl https://win.rustup.rs/x86_64 -o rustup.exe
-rustup.exe /quiet 
+rustup.exe  
 if %ERRORLEVEL% neq 0 (
     echo Error: Failed to install Rust. Please check your internet connection and try again.
     pause
