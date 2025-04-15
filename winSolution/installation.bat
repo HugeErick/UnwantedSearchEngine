@@ -12,21 +12,6 @@ if %ERRORLEVEL% neq 0 (
 cd /d "%~dp0"
 cd ..
 
-:: Helper: Check command existence
-:check_command
-where %1 >nul 2>&1
-if %ERRORLEVEL% neq 0 (
-    echo Error: '%1' is not installed. Please install it and try again.
-    pause
-    exit /b 1
-)
-goto :eof
-
-:: Check dependencies
-call :check_command curl
-call :check_command tar
-call :check_command powershell
-
 :: Step 1: Install Rust if not already installed
 where rustc >nul 2>&1
 if %ERRORLEVEL% neq 0 (
