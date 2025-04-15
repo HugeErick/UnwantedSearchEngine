@@ -35,6 +35,17 @@ if %ERRORLEVEL% neq 0 (
     pause
     exit /b 1
 )
+
+:: Run rustup with default installation options
+rustup.exe -y --default-toolchain stable
+if %ERRORLEVEL% neq 0 (
+    echo Error: Failed to install Rust. Please check the logs above.
+    pause
+    exit /b 1
+)
+
+:: Add cargo to PATH
+setx PATH "%PATH%;%USERPROFILE%\.cargo\bin" /M
 echo Rust installed successfully.
 
 :: Step 2: Install CMake and Clang (if needed)
