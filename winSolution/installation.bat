@@ -40,7 +40,7 @@ if %ERRORLEVEL% neq 0 (
 )
 
 :: Run rustup with default installation options
-rustup.exe -y --default-toolchain stable --no-modify-path
+rustup-init.exe -y --default-toolchain stable --no-modify-path
 if %ERRORLEVEL% neq 0 (
     echo Error: Failed to install Rust. Please check the logs above.
     pause
