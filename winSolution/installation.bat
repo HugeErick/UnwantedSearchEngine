@@ -28,8 +28,7 @@ if %ERRORLEVEL% neq 0 (
 
 :: Step 1: Install Rust
 echo [Step 1/5] Installing Rust...
-powershell -Command "Invoke-WebRequest https://win.rustup.rs/x86_64
--OutFile rustup-init.exe"
+powershell -Command "Invoke-WebRequest https://win.rustup.rs/x86_64 -OutFile rustup-init.exe"
 echo Installing Rust silently...
 set RUSTUP_INIT_SKIP_PATH_CHECH=yes
 set CARGO_HOME=%USERPROFILE%\.cargo
