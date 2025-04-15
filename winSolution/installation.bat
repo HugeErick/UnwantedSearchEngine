@@ -28,7 +28,11 @@ if %ERRORLEVEL% neq 0 (
 
 :: Step 1: Install Rust
 echo [Step 1/5] Installing Rust...
-curl https://win.rustup.rs/x86_64 -o rustup.exe
+powershell -Command "Invoke-WenRequest https://win.rustup.rs/x86_64-OutFile rustup-init.exe"
+echo Installing Rust silently...
+set RUSTUP_INIT_SKIP_PATH_CHECH=yes
+set CARGO_HOME=%USERPROFILE%\.cargo
+set RUSTUP_HOME=%USERPROFILE%\.rustup
 if %ERRORLEVEL% neq 0 (
     echo Error: Failed to install Rust. Please check your internet connection and try again.
     pause
@@ -36,11 +40,13 @@ if %ERRORLEVEL% neq 0 (
 )
 
 :: Run rustup with default installation options
-rustup.exe --no-modify-path --default-toolchain stable -y
+rustup.exe -y --default-toolchain stable --no-modify-path
 if %ERRORLEVEL% neq 0 (
     echo Error: Failed to install Rust. Please check the logs above.
     pause
     exit /b 1
+) else (
+    echo Rust installed successfully.
 )
 
 :: Add cargo to PATH
