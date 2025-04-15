@@ -30,7 +30,7 @@ if %ERRORLEVEL% neq 0 (
 echo [Step 1/5] Installing Rust...
 powershell -Command "Invoke-WebRequest https://win.rustup.rs/x86_64 -OutFile rustup-init.exe"
 echo Installing Rust silently...
-set RUSTUP_INIT_SKIP_PATH_CHECH=yes
+set RUSTUP_INIT_SKIP_PATH_CHECK=yes
 set CARGO_HOME=%USERPROFILE%\.cargo
 set RUSTUP_HOME=%USERPROFILE%\.rustup
 if %ERRORLEVEL% neq 0 (
@@ -51,6 +51,7 @@ if %ERRORLEVEL% neq 0 (
 
 :: Add cargo to PATH
 setx PATH "%PATH%;%USERPROFILE%\.cargo\bin" /M
+set PATH=%PATH%;%USERPROFILE%\.cargo\bin
 echo Rust installed successfully.
 
 :: Step 2: Install CMake and Clang (if needed)
