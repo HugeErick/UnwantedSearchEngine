@@ -109,10 +109,13 @@ if %ERRORLEVEL% neq 0 (
 
 :: Step 5: Extract raylib.dll
 echo [Step 5/5] Extracting raylib.dll...
-tar -xf raylib.zip --wildcards "*/lib/raylib.dll" --strip-components=2
-copy raylib.dll target\release\
+tar -xf raylib.zip
+for /r %%i in (raylib.dll) do if exist "%%i" copy "%%i" target\release\ >nul
+
+:: Clean up
 del raylib.zip
 echo raylib.dll extracted and copied successfully.
 
 echo Done! Run 'target\release\UnwantedSearchEngine.exe' to play.
-pause
+start "" "target\release\UnwantedSearchEngine.exe"
+
