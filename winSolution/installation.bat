@@ -5,7 +5,10 @@ net session >nul 2>&1
 if %ERRORLEVEL% neq 0 (
   echo Error: This script requieres admin privileges.
   echo Please run with admin privileges.
+  pause 
+  exit /b 1
 )
+
 
 :: Check if curl exists
 where curl >nul 2>&1
