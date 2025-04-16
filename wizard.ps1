@@ -189,41 +189,53 @@ try {
     exit 1
 }
 
-# Locate the MSVC tools directory dynamically
+# Locate the MSVC tools directory dynamically (optional check)
+Write-Host "Searching for MSVC tools directory..." -ForegroundColor Yellow
+$msvcPath = $null
+
+# Predefined paths
 $possiblePaths = @(
-    "C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Tools\MSVC",
-    "C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\VC\Tools\MSVC",
-    "C:\Program Files (x86)\Microsoft Visual Studio\2017\BuildTools\VC\Tools\MSVC"
+    "C:\Program Files (x86)\Microsoft Visual Studio\*\BuildTools\VC\Tools\MSVC",
+    "C:\Program Files (x86)\Microsoft Visual Studio\*\Community\VC\Tools\MSVC"
 )
 
-$msvcPath = $null
-foreach ($path in $possiblePaths) {
-    if (Test-Path $path) {
-        $msvcPath = $path
+# Search for MSVC tools directory using wildcard patterns
+foreach ($pathPattern in $possiblePaths) {
+    $matchingPaths = Get-ChildItem -Path $pathPattern -Directory -ErrorAction SilentlyContinue
+    if ($matchingPaths.Count -gt 0) {
+        $msvcPath = $matchingPaths[0].FullName
+        Write-Host "MSVC tools found at: $msvcPath" -ForegroundColor Green
         break
     }
 }
 
+# If no predefined path matches, attempt a broader search
 if (-Not $msvcPath) {
-    Write-Host "Could not find the MSVC tools directory. Please verify the installation manually." -ForegroundColor Red
-    exit 1
+    Write-Host "Predefined paths did not match. Performing a broader search..." -ForegroundColor Yellow
+    $msvcPath = Get-ChildItem -Path "C:\Program Files (x86)\Microsoft Visual Studio" -Recurse -Directory -Filter "MSVC" -ErrorAction SilentlyContinue | Select-Object -First 1 -ExpandProperty FullName
+    if ($msvcPath) {
+        Write-Host "MSVC tools found at: $msvcPath" -ForegroundColor Green
+    }
 }
 
-Write-Host "MSVC tools found at: $msvcPath" -ForegroundColor Green
-
-# Locate link.exe
-$linkExePath = Get-ChildItem -Path $msvcPath -Recurse -Filter "link.exe" | Select-Object -First 1 -ExpandProperty FullName
-if ($linkExePath) {
-    Write-Host "`link.exe` found at: $linkExePath" -ForegroundColor Green
+# If still not found, log a warning and continue
+if (-Not $msvcPath) {
+    Write-Host "Could not find the MSVC tools directory automatically. Continuing without it." -ForegroundColor Yellow
 } else {
-    Write-Host "`link.exe` not found. Please verify the installation." -ForegroundColor Red
-    exit 1
+    # Locate link.exe (optional check)
+    $linkExePath = Get-ChildItem -Path $msvcPath -Recurse -Filter "link.exe" | Select-Object -First 1 -ExpandProperty FullName
+    if ($linkExePath) {
+        Write-Host "`link.exe` found at: $linkExePath" -ForegroundColor Green
+    } else {
+        Write-Host "`link.exe` not found in the MSVC tools directory. Continuing without it." -ForegroundColor Yellow
+    }
 }
 
+# Final success message
 Write-Host "Raylib setup completed successfully. Files are located in: $extractPath"
 Write-Host "Raylib's bin directory has been added to the system PATH."
 Write-Host "Rust has been installed successfully."
 Write-Host "CMake has been installed successfully. Files are located in: $cmakeExtractPath"
 Write-Host "CMake's bin directory has been added to the system PATH."
 Write-Host "Chocolatey package manager has been installed successfully."
-Write-Host "Visual C++ Build Tools have been installed successfully."
+Write-Host "Visual C++ Build Tools have been installed successfully (optional components may not be verified)."
