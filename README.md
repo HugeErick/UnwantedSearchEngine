@@ -22,13 +22,15 @@ Key features:
 ## Installation
 
 ### Prerequisites
-- Rust (latest stable version)
+- Rust 
 
-- Raylib development libraries
+- Raylib 
 
 - Cargo (Rust package manager)
 
 - VS Build Tools
+
+- LLVM/Clang
 
 - Cmake
 

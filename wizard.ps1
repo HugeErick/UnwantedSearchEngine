@@ -1,11 +1,12 @@
 <#
 .SYNOPSIS
-    Installs Raylib development environment with all dependencies including CMake via Chocolatey.
+    Installs Raylib development environment with all dependencies including CMake and LLVM via Chocolatey.
 .DESCRIPTION
     This script sets up a complete Raylib development environment including:
     - Raylib binaries
     - Rust toolchain
     - CMake (via Chocolatey)
+    - LLVM/Clang (via Chocolatey)
     - Visual C++ Build Tools
 .NOTES
     File Name      : Setup-Raylib-Environment.ps1
@@ -176,6 +177,31 @@ try {
     exit 1
 }
 
+# Install LLVM/Clang using Chocolatey
+Write-Host "Installing LLVM/Clang using Chocolatey..." -ForegroundColor Yellow
+try {
+    choco install llvm -y
+    
+    # LLVM typically adds itself to PATH, but let's verify
+    $llvmPath = "${env:ProgramFiles}\LLVM\bin"
+    if (Test-Path $llvmPath) {
+        Add-ToSystemPath -PathToAdd $llvmPath
+    }
+    
+    Refresh-Environment
+    
+    # Verify installation
+    if (Get-Command clang -ErrorAction SilentlyContinue) {
+        Write-Host "Clang version:"
+        clang --version
+    } else {
+        Write-Host "LLVM/Clang installed but not in PATH. You may need to restart your terminal." -ForegroundColor Yellow
+    }
+} catch {
+    Write-Host "Failed to install LLVM/Clang: $_" -ForegroundColor Red
+    exit 1
+}
+
 # Install Visual C++ Build Tools via Chocolatey
 Write-Host "Installing Visual C++ Build Tools via Chocolatey..." -ForegroundColor Yellow
 try {
@@ -223,10 +249,12 @@ Components installed:
 - Raylib 5.5: $extractPath
 - Rust toolchain
 - CMake (via Chocolatey)
+- LLVM/Clang (via Chocolatey)
 - Visual C++ Build Tools
 
 Your system PATH has been updated to include:
 - Raylib binaries
 - CMake
+- LLVM/Clang
 
 "@ -ForegroundColor Green
