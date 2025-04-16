@@ -180,9 +180,50 @@ try {
     exit 1
 }
 
+# Install Visual C++ Build Tools via Chocolatey
+Write-Host "Installing Visual C++ Build Tools via Chocolatey..." -ForegroundColor Yellow
+try {
+    choco install visualcpp-build-tools -y
+} catch {
+    Write-Host "Failed to install visualcpp-build-tools. Error: $_" -ForegroundColor Red
+    exit 1
+}
+
+# Locate the MSVC tools directory dynamically
+$possiblePaths = @(
+    "C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Tools\MSVC",
+    "C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\VC\Tools\MSVC",
+    "C:\Program Files (x86)\Microsoft Visual Studio\2017\BuildTools\VC\Tools\MSVC"
+)
+
+$msvcPath = $null
+foreach ($path in $possiblePaths) {
+    if (Test-Path $path) {
+        $msvcPath = $path
+        break
+    }
+}
+
+if (-Not $msvcPath) {
+    Write-Host "Could not find the MSVC tools directory. Please verify the installation manually." -ForegroundColor Red
+    exit 1
+}
+
+Write-Host "MSVC tools found at: $msvcPath" -ForegroundColor Green
+
+# Locate link.exe
+$linkExePath = Get-ChildItem -Path $msvcPath -Recurse -Filter "link.exe" | Select-Object -First 1 -ExpandProperty FullName
+if ($linkExePath) {
+    Write-Host "`link.exe` found at: $linkExePath" -ForegroundColor Green
+} else {
+    Write-Host "`link.exe` not found. Please verify the installation." -ForegroundColor Red
+    exit 1
+}
+
 Write-Host "Raylib setup completed successfully. Files are located in: $extractPath"
 Write-Host "Raylib's bin directory has been added to the system PATH."
 Write-Host "Rust has been installed successfully."
 Write-Host "CMake has been installed successfully. Files are located in: $cmakeExtractPath"
 Write-Host "CMake's bin directory has been added to the system PATH."
 Write-Host "Chocolatey package manager has been installed successfully."
+Write-Host "Visual C++ Build Tools have been installed successfully."

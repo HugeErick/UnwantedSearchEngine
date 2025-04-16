@@ -28,9 +28,9 @@ Key features:
 
 - Cargo (Rust package manager)
 
-- Clang compiler
+- VS Build Tools
 
-- LLVM toolchain
+- Cmake
 
 ### Steps
 
@@ -38,8 +38,8 @@ Key features:
 1. Clone the repository
 [https://github.com/HugeErick/UnwantedSearchEngine/archive/refs/heads/main.zip](https://github.com/HugeErick/UnwantedSearchEngine/archive/refs/heads/main.zip)
 
-2. Run (just one time)
-`winSolution\installation.bat`
+2. Run 
+`runWizard.bat`
 
 3. After that everytime u want to run it u found it on
 `target\release\UnwantedSearchEngine.exe`
