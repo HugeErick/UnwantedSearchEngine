@@ -1,3 +1,19 @@
+<#
+.SYNOPSIS
+    Installs Raylib development environment with all dependencies including CMake via Chocolatey.
+.DESCRIPTION
+    This script sets up a complete Raylib development environment including:
+    - Raylib binaries
+    - Rust toolchain
+    - CMake (via Chocolatey)
+    - Visual C++ Build Tools
+.NOTES
+    File Name      : Setup-Raylib-Environment.ps1
+    Prerequisite   : PowerShell running as Administrator
+#>
+
+#Requires -RunAsAdministrator
+
 # Define variables
 $raylibUrl = "https://github.com/raysan5/raylib/releases/download/5.5/raylib-5.5_win64_mingw-w64.zip"
 $downloadPath = "$env:TEMP\raylib-5.5_win64_mingw-w64.zip"
@@ -8,11 +24,26 @@ $binPath = "$extractPath\bin"
 $rustInstallerUrl = "https://win.rustup.rs/x86_64"
 $rustInstallerPath = "$env:TEMP\rustup-init.exe"
 
-# CMake-specific variables
-$cmakeUrl = "https://github.com/Kitware/CMake/releases/download/v4.0.1/cmake-4.0.1-windows-x86_64.zip"
-$cmakeDownloadPath = "$env:TEMP\cmake-4.0.1-windows-x86_64.zip"
-$cmakeExtractPath = "$env:USERPROFILE\cmake-4.0.1"
-$cmakeBinPath = "$cmakeExtractPath\bin"
+function Add-ToSystemPath {
+    param(
+        [string]$PathToAdd
+    )
+    
+    $systemPath = [System.Environment]::GetEnvironmentVariable('Path', 'Machine')
+    if ($systemPath -split ';' -notcontains $PathToAdd) {
+        $newPath = $systemPath + ';' + $PathToAdd
+        [System.Environment]::SetEnvironmentVariable('Path', $newPath, 'Machine')
+        Write-Host "Added $PathToAdd to system PATH" -ForegroundColor Green
+        return $true
+    }
+    return $false
+}
+
+function Refresh-Environment {
+    # Refresh PATH from registry
+    $env:Path = [System.Environment]::GetEnvironmentVariable('Path','Machine') + ';' + 
+                [System.Environment]::GetEnvironmentVariable('Path','User')
+}
 
 # Create or clean the extraction directory
 if (Test-Path -Path $extractPath) {
@@ -62,16 +93,8 @@ try {
 # Add Raylib's bin directory to the system PATH
 Write-Host "Adding Raylib's bin directory to the system PATH..."
 try {
-    # Check if the bin path already exists in the system PATH
-    $currentPath = [Environment]::GetEnvironmentVariable("Path", "Machine")
-    if ($currentPath -split ';' -contains $binPath) {
-        Write-Host "Raylib's bin directory is already in the system PATH."
-    } else {
-        # Append the bin path to the system PATH
-        $newPath = "$currentPath;$binPath"
-        [Environment]::SetEnvironmentVariable("Path", $newPath, "Machine")
-        Write-Host "Raylib's bin directory added to the system PATH."
-    }
+    Add-ToSystemPath -PathToAdd $binPath
+    Refresh-Environment
 } catch {
     Write-Host "Failed to update the system PATH. Error: $_"
     exit 1
@@ -106,77 +129,50 @@ try {
     Write-Host "Failed to remove Rust installer. Error: $_"
 }
 
-# Download CMake
-Write-Host "Downloading CMake from: $cmakeUrl"
-try {
-    Invoke-WebRequest -Uri $cmakeUrl -OutFile $cmakeDownloadPath
-    Write-Host "CMake downloaded successfully to: $cmakeDownloadPath"
-} catch {
-    Write-Host "Failed to download CMake. Error: $_"
-    exit 1
-}
-
-# Extract CMake
-Write-Host "Extracting CMake to: $cmakeExtractPath"
-try {
-    if (Test-Path -Path $cmakeExtractPath) {
-        Remove-Item -Path $cmakeExtractPath -Recurse -Force
+# Install Chocolatey (if not already installed)
+Write-Host "Checking for Chocolatey package manager..."
+if (-not (Get-Command choco -ErrorAction SilentlyContinue)) {
+    Write-Host "Installing Chocolatey package manager..."
+    try {
+        Set-ExecutionPolicy Bypass -Scope Process -Force
+        [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072
+        Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
+        Refresh-Environment
+        
+        if (-not (Get-Command choco -ErrorAction SilentlyContinue)) {
+            throw "Chocolatey installation failed"
+        }
+        Write-Host "Chocolatey installed successfully." -ForegroundColor Green
+    } catch {
+        Write-Host "Failed to install Chocolatey: $_" -ForegroundColor Red
+        exit 1
     }
-    New-Item -ItemType Directory -Path $cmakeExtractPath | Out-Null
-    Add-Type -AssemblyName System.IO.Compression.FileSystem
-    [System.IO.Compression.ZipFile]::ExtractToDirectory($cmakeDownloadPath, $cmakeExtractPath)
-    Write-Host "CMake extracted successfully."
-} catch {
-    Write-Host "Failed to extract CMake. Error: $_"
-    exit 1
+} else {
+    Write-Host "Chocolatey is already installed." -ForegroundColor Green
 }
 
-# Clean up the downloaded CMake ZIP file
-Write-Host "Cleaning up downloaded CMake ZIP file..."
+# Install/Upgrade CMake using Chocolatey
+Write-Host "Installing/Upgrading CMake using Chocolatey..."
 try {
-    Remove-Item -Path $cmakeDownloadPath -Force
-    Write-Host "CMake ZIP file removed: $cmakeDownloadPath"
-} catch {
-    Write-Host "Failed to remove CMake ZIP file. Error: $_"
-}
-
-# Add CMake's bin directory to the system PATH
-Write-Host "Adding CMake's bin directory to the system PATH..."
-try {
-    # Check if the bin path already exists in the system PATH
-    $currentPath = [Environment]::GetEnvironmentVariable("Path", "Machine")
-    if ($currentPath -split ';' -contains $cmakeBinPath) {
-        Write-Host "CMake's bin directory is already in the system PATH."
-    } else {
-        # Append the bin path to the system PATH
-        $newPath = "$currentPath;$cmakeBinPath"
-        [Environment]::SetEnvironmentVariable("Path", $newPath, "Machine")
-        Write-Host "CMake's bin directory added to the system PATH."
-    }
-} catch {
-    Write-Host "Failed to update the system PATH. Error: $_"
-    exit 1
-}
-
-# Install Chocolatey
-Write-Host "Installing Chocolatey package manager..."
-try {
-    Set-ExecutionPolicy Bypass -Scope Process -Force
-    [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072
-    Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
-    Write-Host "Chocolatey installed successfully."
+    choco upgrade cmake --installargs 'ADD_CMAKE_TO_PATH=System' -y
     
-    # Refresh the PATH environment variable to include Chocolatey
-    $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")
+    # Manually ensure CMake is in PATH
+    $cmakePath = "${env:ProgramFiles}\CMake\bin"
+    if (Test-Path $cmakePath) {
+        Add-ToSystemPath -PathToAdd $cmakePath
+    }
     
-    # Verify Chocolatey installation
-    if (Get-Command choco -ErrorAction SilentlyContinue) {
-        Write-Host "Chocolatey is ready to use. You can now install packages with 'choco install'."
+    Refresh-Environment
+    
+    # Verify installation
+    if (Get-Command cmake -ErrorAction SilentlyContinue) {
+        Write-Host "CMake version:"
+        cmake --version
     } else {
-        Write-Host "Chocolatey installation completed but may require a new shell session to use."
+        throw "CMake installation verification failed"
     }
 } catch {
-    Write-Host "Failed to install Chocolatey. Error: $_"
+    Write-Host "Failed to install CMake: $_" -ForegroundColor Red
     exit 1
 }
 
@@ -184,6 +180,7 @@ try {
 Write-Host "Installing Visual C++ Build Tools via Chocolatey..." -ForegroundColor Yellow
 try {
     choco install visualcpp-build-tools -y
+    Write-Host "Visual C++ Build Tools installed successfully." -ForegroundColor Green
 } catch {
     Write-Host "Failed to install visualcpp-build-tools. Error: $_" -ForegroundColor Red
     exit 1
@@ -193,13 +190,12 @@ try {
 Write-Host "Searching for MSVC tools directory..." -ForegroundColor Yellow
 $msvcPath = $null
 
-# Predefined paths
+# Search common locations
 $possiblePaths = @(
     "C:\Program Files (x86)\Microsoft Visual Studio\*\BuildTools\VC\Tools\MSVC",
     "C:\Program Files (x86)\Microsoft Visual Studio\*\Community\VC\Tools\MSVC"
 )
 
-# Search for MSVC tools directory using wildcard patterns
 foreach ($pathPattern in $possiblePaths) {
     $matchingPaths = Get-ChildItem -Path $pathPattern -Directory -ErrorAction SilentlyContinue
     if ($matchingPaths.Count -gt 0) {
@@ -209,33 +205,28 @@ foreach ($pathPattern in $possiblePaths) {
     }
 }
 
-# If no predefined path matches, attempt a broader search
-if (-Not $msvcPath) {
-    Write-Host "Predefined paths did not match. Performing a broader search..." -ForegroundColor Yellow
-    $msvcPath = Get-ChildItem -Path "C:\Program Files (x86)\Microsoft Visual Studio" -Recurse -Directory -Filter "MSVC" -ErrorAction SilentlyContinue | Select-Object -First 1 -ExpandProperty FullName
-    if ($msvcPath) {
-        Write-Host "MSVC tools found at: $msvcPath" -ForegroundColor Green
-    }
-}
-
-# If still not found, log a warning and continue
-if (-Not $msvcPath) {
-    Write-Host "Could not find the MSVC tools directory automatically. Continuing without it." -ForegroundColor Yellow
-} else {
-    # Locate link.exe (optional check)
+# If found, locate link.exe
+if ($msvcPath) {
     $linkExePath = Get-ChildItem -Path $msvcPath -Recurse -Filter "link.exe" | Select-Object -First 1 -ExpandProperty FullName
     if ($linkExePath) {
-        Write-Host "`link.exe` found at: $linkExePath" -ForegroundColor Green
-    } else {
-        Write-Host "`link.exe` not found in the MSVC tools directory. Continuing without it." -ForegroundColor Yellow
+        Write-Host "link.exe found at: $linkExePath" -ForegroundColor Green
     }
 }
 
 # Final success message
-Write-Host "Raylib setup completed successfully. Files are located in: $extractPath"
-Write-Host "Raylib's bin directory has been added to the system PATH."
-Write-Host "Rust has been installed successfully."
-Write-Host "CMake has been installed successfully. Files are located in: $cmakeExtractPath"
-Write-Host "CMake's bin directory has been added to the system PATH."
-Write-Host "Chocolatey package manager has been installed successfully."
-Write-Host "Visual C++ Build Tools have been installed successfully (optional components may not be verified)."
+Write-Host @"
+=============================================
+Raylib development environment setup complete!
+=============================================
+
+Components installed:
+- Raylib 5.5: $extractPath
+- Rust toolchain
+- CMake (via Chocolatey)
+- Visual C++ Build Tools
+
+Your system PATH has been updated to include:
+- Raylib binaries
+- CMake
+
+"@ -ForegroundColor Green
