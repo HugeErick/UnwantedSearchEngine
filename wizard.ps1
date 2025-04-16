@@ -158,8 +158,31 @@ try {
     exit 1
 }
 
+# Install Chocolatey
+Write-Host "Installing Chocolatey package manager..."
+try {
+    Set-ExecutionPolicy Bypass -Scope Process -Force
+    [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072
+    Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
+    Write-Host "Chocolatey installed successfully."
+    
+    # Refresh the PATH environment variable to include Chocolatey
+    $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")
+    
+    # Verify Chocolatey installation
+    if (Get-Command choco -ErrorAction SilentlyContinue) {
+        Write-Host "Chocolatey is ready to use. You can now install packages with 'choco install'."
+    } else {
+        Write-Host "Chocolatey installation completed but may require a new shell session to use."
+    }
+} catch {
+    Write-Host "Failed to install Chocolatey. Error: $_"
+    exit 1
+}
+
 Write-Host "Raylib setup completed successfully. Files are located in: $extractPath"
 Write-Host "Raylib's bin directory has been added to the system PATH."
 Write-Host "Rust has been installed successfully."
 Write-Host "CMake has been installed successfully. Files are located in: $cmakeExtractPath"
 Write-Host "CMake's bin directory has been added to the system PATH."
+Write-Host "Chocolatey package manager has been installed successfully."
