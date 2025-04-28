@@ -4,20 +4,20 @@ use raylib::prelude::*;
 const BUTTON_WIDTH: i32 = 100;
 const BUTTON_HEIGHT: i32 = 40;
 
-pub fn drawButton(d: &mut RaylibDrawHandle, window_width: i32, is_hovered: bool) {
+pub fn drawButton(d: &mut RaylibDrawHandle, windowWidth: i32, isHovered: bool) {
     // Calculate button position (top-right corner)
-    let buttonX = window_width - BUTTON_WIDTH - 20; // 20px margin from the right edge
+    let buttonX = windowWidth - BUTTON_WIDTH - 15; // 20px margin from the right edge
     let buttonY = 20; // 20px margin from the top edge
 
     // Define button colors
-    let button_color = if is_hovered {
+    let buttonColor = if isHovered {
         Color::new(100, 100, 255, 255) // Highlighted color when hovered
     } else {
         Color::new(50, 50, 150, 255) // Default button color
     };
 
     // Draw the button
-    d.draw_rectangle(buttonX, buttonY, BUTTON_WIDTH, BUTTON_HEIGHT, button_color);
+    d.draw_rectangle(buttonX, buttonY, BUTTON_WIDTH, BUTTON_HEIGHT, buttonColor);
 
     // Draw button text
     let text = "Toggle";
@@ -28,9 +28,9 @@ pub fn drawButton(d: &mut RaylibDrawHandle, window_width: i32, is_hovered: bool)
     d.draw_text(text, textX, textY, fontSize, Color::WHITE);
 }
 
-pub fn isMouseOverButton(mouseX: i32, mouseY: i32, window_width: i32) -> bool {
+pub fn isMouseOverButton(mouseX: i32, mouseY: i32, windowWidth: i32) -> bool {
     // Calculate button position (top-right corner)
-    let buttonX = window_width - BUTTON_WIDTH - 20;
+    let buttonX = windowWidth - BUTTON_WIDTH - 20;
     let buttonY = 20;
 
     // Check if the mouse is within the button's bounds

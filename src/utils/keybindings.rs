@@ -1,8 +1,19 @@
 use raylib::prelude::*;
 
-use crate::windowHandler::WindowSettings;
+use crate::{components::dialogs::quitDialog::QuitDialog, windowHandler::WindowSettings};
 
-pub fn handleKeybindings (rl: &mut RaylibHandle, windowSettings: &mut WindowSettings) {
+pub fn handleKeybindings (rl: &mut RaylibHandle, windowSettings: &mut WindowSettings, quitDialog: &mut QuitDialog) {
+
+  // Handle Escape key logic
+  if rl.is_key_pressed(raylib::consts::KeyboardKey::KEY_ESCAPE) {
+    if quitDialog.isVisible {
+      unsafe {
+        raylib::ffi::CloseWindow();
+      }
+    } else {
+      quitDialog.isVisible = true;
+    }
+  }
 
   // we do fullscreen if F is pressed
   if rl.is_key_pressed(raylib::consts::KeyboardKey::KEY_F) {
@@ -16,8 +27,8 @@ pub fn handleKeybindings (rl: &mut RaylibHandle, windowSettings: &mut WindowSett
       windowSettings.width = unsafe { raylib::ffi::GetMonitorWidth(monitorIndex)};
       windowSettings.height = unsafe { raylib::ffi::GetMonitorHeight(monitorIndex)};
     } else {
-      windowSettings.width = 800;
-      windowSettings.height = 600;
+      windowSettings.width = windowSettings.originalWidth;
+      windowSettings.height = windowSettings.originalHeight;
     }
   }
 
