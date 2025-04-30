@@ -137,6 +137,8 @@ pub fn handleSearchInput(rl:&mut RaylibHandle, windowSettings: &mut WindowSettin
     windowSettings.searchQuery = ['\0'; 64];
     windowSettings.searchCursor = 0;
 
+    windowSettings.isSearching = true;
+
     outputArea.clearResults();
     outputArea.addResult(OutputItem::Message("Searching...".to_string()));
 
@@ -149,16 +151,19 @@ pub fn handleSearchInput(rl:&mut RaylibHandle, windowSettings: &mut WindowSettin
         for result in apiResponse.results {
           outputArea.addResult(OutputItem::SearchResult(result));
         }
+        windowSettings.isSearching = false;
       }
       Err(FetchError::Reqwest(e)) => {
         eprintln!("Network error fetching search results: {}", e);
         outputArea.clearResults();
         outputArea.addResult(OutputItem::Message("Failed to fetch results".to_string()));
+        windowSettings.isSearching = false;
       }
       Err(FetchError::SerdeJson(e)) => {
         eprintln!("JSON decoding error: {}", e);
         outputArea.clearResults();
         outputArea.addResult(OutputItem::Message("Failed to decode results".to_string()));
+        windowSettings.isSearching = false;
       }
     }
 

@@ -24,7 +24,7 @@ pub fn drawContent(d: &mut RaylibDrawHandle, windowSettings: &WindowSettings, cu
   // Define the text to be displayed
   let text = "Unwanted Search Engine";
   let fontSize = 50;
-  let textColor = Color::BLUEVIOLET;
+  let textColor = Color::GOLD;
 
   // Measure the width of the text
   let textWidth = d.measure_text(text, fontSize);
@@ -64,4 +64,19 @@ pub fn drawContent(d: &mut RaylibDrawHandle, windowSettings: &WindowSettings, cu
 
   // Draw the second line below the first line
   d.draw_text(ttipTextLine2, ttXPosLine2, 620 + ttipFontSize + 5, ttipFontSize, ttipColor);
+
+  drawSearchStatus(d, windowSettings);
+}
+
+pub fn drawSearchStatus(d: &mut RaylibDrawHandle , windowSettings: &WindowSettings) {
+  if windowSettings.isSearching {
+    let message = "Searching...";
+    let x = 10;
+    let y = 50;
+    let fontSize = 100;
+    let textColor = Color::GREEN;
+
+
+    d.draw_text(message, x, y, fontSize, textColor);
+  }
 }

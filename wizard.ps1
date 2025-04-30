@@ -206,7 +206,7 @@ try {
 Write-Host "Installing Visual C++ Build Tools via Chocolatey..." -ForegroundColor Yellow
 try {
     # choco install visualcpp-build-tools --version=17.0.0 --force -y
-    choco install visualstudio2022-workload-vctools -y
+    choco install visualstudio2017buildtools --force -y
     Write-Host "Visual C++ Build Tools installed successfully." -ForegroundColor Green
 } catch {
     Write-Host "Failed to install visualcpp-build-tools. Error: $_" -ForegroundColor Red

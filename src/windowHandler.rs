@@ -16,6 +16,7 @@ pub fn runMainWindow() {
     searchQuery: ['\0'; 64],
     searchCursor: 0,
     searchBarFocused: true,
+    isSearching: false,
   };
 
   // rl = raylib
@@ -34,18 +35,6 @@ pub fn runMainWindow() {
 
   let mut quitDialog = quitDialog::QuitDialog::new();
   let mut outputArea = OutputArea::new(100, 200, 700, 400);
-
-  // Get query from search bar (and print it)
-
-  // some query processing...
-
-  // Add results of query to output area
-
-  // the following works!
-  // for i in 0..40 {
-  //   outputArea.addResult(format!("totogb es muy nice {}", i));
-  // }
-  
 
   // Main loop
   while !rl.window_should_close() {
@@ -75,6 +64,7 @@ pub struct WindowSettings {
   pub searchQuery: [char; 64],
   pub searchCursor: usize,
   pub searchBarFocused: bool,
+  pub isSearching: bool,
 }
 
 #[derive(Clone, Copy, Debug)]

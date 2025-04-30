@@ -6,7 +6,7 @@ use crate::components::outputArea::OutputArea;
 use crate::components::dialogs::quitDialog::QuitDialog;
 use crate::windowHandler::WindowSettings;
 
-pub fn updateContent(rl: &mut RaylibHandle, windowSettings: &mut WindowSettings, quitDialog: &mut QuitDialog, outputArea: &mut OutputArea) {
+pub fn updateContent(rl: &mut RaylibHandle, windowSettings: &mut WindowSettings, quitDialog: &mut QuitDialog, outputArea: &mut OutputArea ) {
   // Handle keybindings
   keybindings::handleKeybindings(rl, windowSettings, quitDialog);
 
@@ -42,3 +42,4 @@ pub fn updateContent(rl: &mut RaylibHandle, windowSettings: &mut WindowSettings,
   // Handle output area
   outputArea.handleScroll(rl);
 }
+
