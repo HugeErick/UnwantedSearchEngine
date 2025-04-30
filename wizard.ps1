@@ -202,6 +202,16 @@ try {
     exit 1
 }
 
+# Install Visual Studio 17
+Write-Host "Installing Visual 17 via Chocolatey..." -ForegroundColor Yellow
+try {
+    choco install visualstudio2017community --force -y
+    Write-Host "Visual Studio 17 installed successfully." -ForegroundColor Green
+} catch {
+    Write-Host "Failed to install Visual Studio 17. Error: $_" -ForegroundColor Red
+    exit 1
+}
+
 # Install Visual C++ Build Tools via Chocolatey
 Write-Host "Installing Visual C++ Build Tools via Chocolatey..." -ForegroundColor Yellow
 try {
