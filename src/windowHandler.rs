@@ -1,6 +1,7 @@
 use raylib::prelude::RaylibDraw;
 use raylib::prelude::Color;
 
+use crate::components::outputArea::OutputArea;
 use crate::components::dialogs::quitDialog;
 use crate::drawingHandler;
 use crate::updateHandler;
@@ -14,6 +15,7 @@ pub fn runMainWindow() {
     originalHeight: 700,
     searchQuery: ['\0'; 64],
     searchCursor: 0,
+    searchBarFocused: true,
   };
 
   // rl = raylib
@@ -31,13 +33,25 @@ pub fn runMainWindow() {
   let mut currTheme = Theme::Dark(darkThemeColor);
 
   let mut quitDialog = quitDialog::QuitDialog::new();
+  let mut outputArea = OutputArea::new(100, 200, 700, 400);
+
+  // Get query from search bar (and print it)
+
+  // some query processing...
+
+  // Add results of query to output area
+
+  // the following works!
+  // for i in 0..40 {
+  //   outputArea.addResult(format!("totogb es muy nice {}", i));
+  // }
   
 
   // Main loop
   while !rl.window_should_close() {
 
     // Update module
-    updateHandler::updateContent(&mut rl, &mut windowSettings, &mut quitDialog);
+    updateHandler::updateContent(&mut rl, &mut windowSettings, &mut quitDialog, &mut outputArea);
     
     let backgroundColor = currTheme.getBackgroundColor();
     // Delegate drawing to drawing module
@@ -46,6 +60,7 @@ pub fn runMainWindow() {
     d.clear_background(backgroundColor);
     drawingHandler::drawContent(&mut d, &windowSettings,&mut currTheme, &quitDialog);
 
+    outputArea.draw(&mut d);
     // Debugg
     // std::thread::sleep(std::time::Duration::from_millis(300));
   }
@@ -59,6 +74,7 @@ pub struct WindowSettings {
   pub originalHeight: i32,
   pub searchQuery: [char; 64],
   pub searchCursor: usize,
+  pub searchBarFocused: bool,
 }
 
 #[derive(Clone, Copy, Debug)]

@@ -43,4 +43,25 @@ pub fn drawContent(d: &mut RaylibDrawHandle, windowSettings: &WindowSettings, cu
 
   // Draw the quit dialog if visible
   quitDialog.draw(d, windowSettings);
+
+  // Tooltips
+  let ttipTextLine1 = "Ctrl + f to fullscreen";
+  let ttipTextLine2 = "Up and down arrows to scroll over results";
+
+  let ttipFontSize = 20;
+  let ttipColor = Color::GREEN;
+
+  // Measure the width of each line
+  let ttTextWidthLine1 = d.measure_text(ttipTextLine1, ttipFontSize);
+  let ttTextWidthLine2 = d.measure_text(ttipTextLine2, ttipFontSize);
+
+  // Calculate the X position for each line to center it horizontally
+  let ttXPosLine1 = (windowSettings.width - ttTextWidthLine1) / 2;
+  let ttXPosLine2 = (windowSettings.width - ttTextWidthLine2) / 2;
+
+  // Draw the first line
+  d.draw_text(ttipTextLine1, ttXPosLine1, 620, ttipFontSize, ttipColor);
+
+  // Draw the second line below the first line
+  d.draw_text(ttipTextLine2, ttXPosLine2, 620 + ttipFontSize + 5, ttipFontSize, ttipColor);
 }
