@@ -202,24 +202,34 @@ try {
     exit 1
 }
 
-# Install Visual Studio 17
-Write-Host "Installing Visual 17 via Chocolatey..." -ForegroundColor Yellow
+# Install Visual Studio 22
+Write-Host "Installing Visual 22 via Chocolatey..." -ForegroundColor Yellow
 try {
-    choco install visualstudio2017community --force -y
-    Write-Host "Visual Studio 17 installed successfully." -ForegroundColor Green
+    choco install choco install visualstudio2022community -y
+    Write-Host "Visual Studio 22 installed successfully." -ForegroundColor Green
 } catch {
-    Write-Host "Failed to install Visual Studio 17. Error: $_" -ForegroundColor Red
+    Write-Host "Failed to install Visual Studio 22. Error: $_" -ForegroundColor Red
     exit 1
 }
 
 # Install Visual C++ Build Tools via Chocolatey
-Write-Host "Installing Visual C++ Build Tools via Chocolatey..." -ForegroundColor Yellow
+Write-Host "Installing Visual Build Tools via Chocolatey..." -ForegroundColor Yellow
 try {
     # choco install visualcpp-build-tools --version=17.0.0 --force -y
-    choco install visualstudio2017buildtools --force -y
+    choco install visualstudio2022buildtools --force -y
+    Write-Host "Visual Build Tools installed successfully." -ForegroundColor Green
+} catch {
+    Write-Host "Failed to install visual-build-tools. Error: $_" -ForegroundColor Red
+    exit 1
+}
+
+# Visual Studio cpp build tools installation
+Write-Host "Installing Visual Studio C++ Build Tools..." -ForegroundColor Yellow
+try {
+  choco install visualstudio2022-workload-vctools -y
     Write-Host "Visual C++ Build Tools installed successfully." -ForegroundColor Green
 } catch {
-    Write-Host "Failed to install visualcpp-build-tools. Error: $_" -ForegroundColor Red
+    Write-Host "Failed to install Visual C++ Build Tools. Error: $_" -ForegroundColor Red
     exit 1
 }
 
