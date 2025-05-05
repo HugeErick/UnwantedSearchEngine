@@ -19,12 +19,6 @@ CREATE TABLE IF NOT EXISTS WORD (
     word TEXT NOT NULL UNIQUE
 );
 
--- Create the QUERY table
-CREATE TABLE IF NOT EXISTS QUERY (
-    id SERIAL PRIMARY KEY,
-    label TEXT NOT NULL
-);
-
 -- Create the HAS relationship table (many-to-many between DOCUMENT and TERM)
 CREATE TABLE IF NOT EXISTS HAS (
     document_id INTEGER REFERENCES DOCUMENT(id),
@@ -38,4 +32,11 @@ CREATE TABLE IF NOT EXISTS REPRESENTS (
     term_id INTEGER REFERENCES TERM(id),
     word_id INTEGER REFERENCES WORD(id),
     PRIMARY KEY (term_id, word_id)
+);
+
+-- Create the SYNONYMS table
+CREATE TABLE IF NOT EXISTS SYNONYMS (
+    term_id INT8 NOT NULL REFERENCES TERM(id),
+    synonym_name VARCHAR(255) NOT NULL,
+    PRIMARY KEY (term_id, synonym_name)
 );
